@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Propiedades, presión, temperatura y densidad en un entorno interactivo.">
+<title>IA & Mecánica de Fluidos — Preliminares</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f5f7fa; --panel:#ffffff; --border:#dde3ec; --text:#1a2233;
+  --accent:#1976d2; --accent-dark:#1565c0; --accent-light:#e3f0fd;
+  --ok:#2e7d32; --bad:#c62828; --muted:#5c6b84;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5}
+code,.mono{font-family:'IBM Plex Mono',monospace}
+header{background:linear-gradient(90deg,#1565c0 0%,#1976d2 60%,#1e88e5 100%);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:1.15rem;letter-spacing:.3px;background:rgba(255,255,255,.16);padding:6px 12px;border-radius:10px;white-space:nowrap;display:inline-flex;align-items:center;gap:8px}
+.brand .b-icon{display:flex;align-items:center}
+.brand .b-accent{color:#f97316}
+.brand .b-thermo{background:rgba(255,255,255,.18);border-radius:8px;padding:4px 6px;display:flex;align-items:center}
+header h1{font-size:1.05rem;font-weight:500;flex:1;min-width:220px}
+.sys-toggle{display:flex;background:rgba(255,255,255,.18);border-radius:8px;overflow:hidden}
+.sys-toggle button{border:none;background:transparent;color:#fff;padding:7px 14px;cursor:pointer;font-family:inherit;font-size:.85rem;font-weight:600}
+.sys-toggle button.active{background:#fff;color:var(--accent-dark)}
+/* === Índice de la aplicación === */
+.idx-intro{background:linear-gradient(90deg,#eef5fc,#f7fbff);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+.idx-intro h2{margin:0 0 6px;font-size:1.05rem;color:var(--accent-dark)}
+.idx-intro p{margin:0;font-size:.9rem;color:var(--muted);line-height:1.6}
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
+.idx-card{background:var(--panel);border:1px solid var(--border);border-left:5px solid var(--accent);border-radius:12px;padding:14px 16px}
+.idx-card h3{margin:0 0 4px;font-size:.98rem;color:var(--accent-dark);display:flex;align-items:center;gap:8px}
+.idx-card .idx-num{background:var(--accent);color:#fff;border-radius:7px;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.idx-card>p{margin:0 0 8px;font-size:.82rem;color:var(--muted)}
+.idx-card ul{list-style:none;margin:0;padding:0}
+.idx-card li{margin:0 0 3px}
+.idx-card li a{display:block;text-decoration:none;color:var(--text,#1a2430);font-size:.86rem;padding:5px 8px;border-radius:7px;border:1px solid transparent}
+.idx-card li a:hover{background:#eef5fc;border-color:var(--border);color:var(--accent-dark)}
+.idx-card li a .tag{font-size:.7rem;color:#fff;background:#8aa0b8;border-radius:5px;padding:1px 6px;margin-right:6px;vertical-align:middle}
+.idx-card li a .tag.c{background:#5b8def}.idx-card li a .tag.h{background:#38a169}.idx-card li a .tag.e{background:#dd8b3a}
+.idx-note{margin-top:14px;background:#fff8e6;border:1px solid #e8d49a;border-radius:10px;padding:12px 14px;font-size:.84rem;line-height:1.6}
+.flash{animation:flashcard 1.6s ease-out}
+@keyframes flashcard{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 3px rgba(25,118,210,0)}}
+nav.tabs{display:flex;gap:6px;padding:12px 22px 0;flex-wrap:wrap;background:var(--bg);position:sticky;top:0;z-index:10;border-bottom:1px solid var(--border)}
+nav.tabs button{border:1px solid var(--border);border-bottom:none;background:#eef2f8;color:var(--muted);padding:10px 16px;border-radius:10px 10px 0 0;cursor:pointer;font-family:inherit;font-size:.9rem;font-weight:600}
+nav.tabs button.active{background:var(--panel);color:var(--accent-dark);border-color:var(--accent);border-bottom:2px solid var(--panel);margin-bottom:-1px}
+main{max-width:1180px;margin:0 auto;padding:20px 22px 60px}
+section.module{display:none}
+section.module.active{display:block}
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.row-man-bar{display:grid;gap:16px;grid-template-columns:minmax(300px,1fr) minmax(0,2.1fr);margin-bottom:16px}
+@media(max-width:900px){.row-man-bar{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.card h2{font-size:1.02rem;color:var(--accent-dark);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h2 .chip{font-size:0.75rem;background:var(--accent-light);color:var(--accent-dark);padding:2px 8px;border-radius:10px;font-weight:600}
+.concepto{background:var(--accent-light);border:1px solid #bcd8f6;border-radius:12px;padding:16px;margin-bottom:16px}
+.concepto h3{font-size:.95rem;color:var(--accent-dark);margin-bottom:6px}
+.concepto p{font-size:.9rem}
+details.concepto summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;user-select:none}
+details.concepto summary::-webkit-details-marker{display:none}
+details.concepto summary h3{margin-bottom:0}
+details.concepto summary h3::before{content:"▸ ";color:var(--accent-dark)}
+details.concepto[open] summary h3::before{content:"▾ "}
+details.concepto[open] summary{margin-bottom:6px}
+details.concepto .toggle-hint{margin-left:auto;font-size:0.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+label{font-size:.82rem;font-weight:600;color:var(--muted);display:block;margin:8px 0 3px}
+select,input[type=number],input[type=text]{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:.9rem;background:#fff;color:var(--text)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+button.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 16px;cursor:pointer;font-family:inherit;font-weight:600;font-size:.88rem;margin-top:10px}
+button.btn:hover{background:var(--accent-dark)}
+button.btn.sec{background:#eef2f8;color:var(--accent-dark);border:1px solid var(--border)}
+.result{background:#f0f6fd;border:1px solid #cfe3f8;border-radius:8px;padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:.92rem;margin-top:10px;white-space:pre-line}
+.big{font-size:1.25rem;font-weight:600;color:var(--accent-dark)}
+table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:8px}
+th,td{border:1px solid var(--border);padding:6px 9px;text-align:left}
+th{background:#eef2f8;color:var(--muted)}
+td.mono{font-family:'IBM Plex Mono',monospace}
+.ok{color:var(--ok);font-weight:600}
+.bad{color:var(--bad);font-weight:600}
+.feedback{border-radius:8px;padding:12px;margin-top:10px;font-size:.88rem;display:none}
+.feedback.show{display:block}
+.feedback.good{background:#e8f5e9;border:1px solid #a5d6a7}
+.feedback.wrong{background:#ffebee;border:1px solid #ef9a9a}
+.feedback ol{margin:8px 0 0 20px}
+.feedback li{margin-bottom:4px;font-family:'IBM Plex Mono',monospace;font-size:.83rem}
+.ex-card{border-left:4px solid var(--accent)}
+.flexrow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.flexrow>div{flex:1;min-width:120px}
+.slider-val{font-family:'IBM Plex Mono',monospace;color:var(--accent-dark);font-weight:600}
+svg text{font-family:'IBM Plex Sans',sans-serif}
+.blocks{display:flex;gap:14px;justify-content:center;margin:14px 0}
+.block{width:96px;height:96px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:700;transition:background .3s;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.block small{font-weight:400;font-size:0.75rem}
+.block .t{font-family:'IBM Plex Mono',monospace;font-size:1rem}
+.sheet-tabs{display:flex;gap:4px;margin:10px 0 0;border-bottom:2px solid var(--accent);flex-wrap:wrap}
+.sheet-tabs button{border:1px solid var(--border);border-bottom:none;background:#eef2f8;color:var(--muted);padding:6px 12px;border-radius:8px 8px 0 0;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:.78rem;font-weight:600}
+.sheet-tabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.mini-sys{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-left:auto}
+.mini-sys button{border:none;background:#eef2f8;color:var(--muted);padding:3px 10px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:0.75rem;font-weight:600}
+.mini-sys button.active{background:var(--accent);color:#fff}
+footer{text-align:center;color:var(--muted);font-size:.78rem;padding:18px;border-top:1px solid var(--border)}
+canvas{max-height:300px}
+@media(max-width:640px){header h1{font-size:.9rem}main{padding:14px 12px 50px}}
+/* === Mejoras de accesibilidad (ORV) === */
+:where(a,button,select,input,textarea,canvas,summary,[tabindex]):focus-visible{outline:3px solid var(--accent,#1976d2);outline-offset:2px;border-radius:6px}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="topbar-brand" aria-label="IA & Mecánica de Fluidos" style="display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;letter-spacing:.3px;color:#fff;flex-shrink:0"><span style="display:flex;align-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7dd8f8" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 17 8 11 13 14 20 6"/><polyline points="17 6 20 6 20 9"/></svg></span>IA<span style="color:#f97316"> &amp; </span>Mecánica de Fluidos<span style="background:rgba(255,255,255,.18);border-radius:8px;padding:4px 6px;display:flex;align-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span></span>
+  <h1>Preliminares</h1>
+  <div class="sys-toggle">
+    <button id="sysSI" class="active" onclick="setSystem('SI')">SI</button>
+    <button id="sysEN" onclick="setSystem('EN')">Inglés</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="active" data-tab="mod0" onclick="showTab('mod0',this)">Índice</button>
+  <button data-tab="mod1" onclick="showTab('mod1',this)">Unidades y dimensiones</button>
+  <button data-tab="mod2" onclick="showTab('mod2',this)">Densidad y volumen específico</button>
+  <button data-tab="mod3" onclick="showTab('mod3',this)">Presión</button>
+  <button data-tab="mod4" onclick="showTab('mod4',this)">Temperatura</button>
+</nav>
+
+<main>
+
+<!-- ============ ÍNDICE ============ -->
+<section id="mod0" class="module active">
+  <div class="idx-intro">
+    <h2>Preliminares · Índice de la aplicación</h2>
+    <p>Aplicación interactiva de la unidad 1 del curso de Mecánica de Fluidos. Reúne cuatro módulos temáticos con textos conceptuales, herramientas de cálculo, gráficas y tablas interactivas, y un ejercicio autoevaluable por módulo. Seleccione cualquier entrada del índice para abrir directamente el módulo y la herramienta correspondiente; también puede navegar con las pestañas superiores.</p>
+  </div>
+  <div class="idx-grid">
+    <div class="idx-card">
+      <h3><span class="idx-num">1</span>Unidades y dimensiones</h3>
+      <p>Dimensiones, sistemas estándar, homogeneidad dimensional y conversión de unidades.</p>
+      <ul>
+      <li><a href="#" onclick="irA('mod1','concepto');return false;"><span class="tag c">Concepto</span>Dimensiones y unidades</a></li>
+      <li><a href="#" onclick="irA('mod1',0);return false;"><span class="tag h">Herramienta</span>Conversor SI ↔ inglés</a></li>
+      <li><a href="#" onclick="irA('mod1',1);return false;"><span class="tag h">Herramienta</span>Fuerza y masa: SI · BG · inglés de ingeniería (F = m·a)</a></li>
+      <li><a href="#" onclick="irA('mod1',2);return false;"><span class="tag h">Tabla</span>Prefijos del SI</a></li>
+      <li><a href="#" onclick="irA('mod1',3);return false;"><span class="tag e">Ejercicio</span>Ejercicio aleatorio de conversión</a></li>
+      </ul>
+    </div>
+    <div class="idx-card">
+      <h3><span class="idx-num">2</span>Densidad y volumen específico</h3>
+      <p>Propiedades de masa: densidad, volumen específico, peso específico y densidad relativa.</p>
+      <ul>
+      <li><a href="#" onclick="irA('mod2','concepto');return false;"><span class="tag c">Concepto</span>Densidad, volumen específico y peso específico</a></li>
+      <li><a href="#" onclick="irA('mod2',0);return false;"><span class="tag h">Herramienta</span>Calculadora ligada ρ — v — γ</a></li>
+      <li><a href="#" onclick="irA('mod2',1);return false;"><span class="tag h">Gráfica</span>Relación recíproca ρ – v</a></li>
+      <li><a href="#" onclick="irA('mod2',2);return false;"><span class="tag h">Gráfica</span>Variación con la temperatura: ρ y γ del agua, S del mercurio</a></li>
+      <li><a href="#" onclick="irA('mod2',3);return false;"><span class="tag e">Ejercicio</span>Ejercicio aleatorio de propiedades</a></li>
+      </ul>
+    </div>
+    <div class="idx-card">
+      <h3><span class="idx-num">3</span>Presión</h3>
+      <p>Medición de presión por columna de líquido, variación con la elevación y escalas de presión.</p>
+      <ul>
+      <li><a href="#" onclick="irA('mod3','concepto');return false;"><span class="tag c">Concepto</span>Presión</a></li>
+      <li><a href="#" onclick="irA('mod3',0);return false;"><span class="tag h">Herramienta</span>Manómetro en U (P = ρgh)</a></li>
+      <li><a href="#" onclick="irA('mod3',1);return false;"><span class="tag h">Herramienta</span>Barómetro y variación con la elevación</a></li>
+      <li><a href="#" onclick="irA('mod3',2);return false;"><span class="tag h">Tablas</span>Propiedades de la atmósfera a gran altitud</a></li>
+      <li><a href="#" onclick="irA('mod3',3);return false;"><span class="tag h">Herramienta</span>Presión absoluta, manométrica y de vacío</a></li>
+      <li><a href="#" onclick="irA('mod3',4);return false;"><span class="tag h">Herramienta</span>Conversor de unidades de presión</a></li>
+      <li><a href="#" onclick="irA('mod3',5);return false;"><span class="tag e">Ejercicio</span>Ejercicio aleatorio de presión</a></li>
+      </ul>
+    </div>
+    <div class="idx-card">
+      <h3><span class="idx-num">4</span>Temperatura</h3>
+      <p>Ley Cero, escalas termométricas absolutas y relativas, y diferencias de temperatura.</p>
+      <ul>
+      <li><a href="#" onclick="irA('mod4','concepto');return false;"><span class="tag c">Concepto</span>Ley Cero y escalas de temperatura</a></li>
+      <li><a href="#" onclick="irA('mod4',0);return false;"><span class="tag h">Herramienta</span>Termómetro y conversión de escalas</a></li>
+      <li><a href="#" onclick="irA('mod4',1);return false;"><span class="tag h">Simulación</span>Ley Cero — equilibrio térmico</a></li>
+      <li><a href="#" onclick="irA('mod4',2);return false;"><span class="tag h">Herramienta</span>Diferencias de temperatura ΔT</a></li>
+      <li><a href="#" onclick="irA('mod4',3);return false;"><span class="tag e">Ejercicio</span>Ejercicio aleatorio de temperatura</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="idx-note">
+    <b>Cómo usar la aplicación.</b> El selector <b>SI / Inglés</b> del encabezado cambia de forma global el sistema de unidades de todas las herramientas, tablas y gráficas; algunas tarjetas incluyen además un selector propio sincronizado con el global. Los bloques <i>Concepto</i> se despliegan y contraen. Los <i>Ejercicios aleatorios</i> generan un enunciado nuevo cada vez y verifican la respuesta con realimentación. El botón de <b>Ayuda</b> describe el alcance de cada módulo.
+  </div>
+</section>
+
+<!-- ============ MÓDULO 1 ============ -->
+<section id="mod1" class="module">
+  <details class="concepto">
+    <summary><h3>Concepto — Dimensiones y unidades</h3><span class="toggle-hint">desplegar / contraer</span></summary>
+    <p>Se define una <b>dimensión</b> como una característica física básica o fundamental por la cual se puede expresar una variable física, esta es una propiedad física medible (masa M, longitud L, tiempo T, temperatura Θ); una <b>unidad</b> es la magnitud convencional con que se cuantifica. Se tiene dos sistemas estándar; el <b>sistema Internacional, SI</b> (kg, m, s, K) y el <b>sistema Gravitacional Británico, BG</b> (slug, ft, s, °R), se identifican como estándar ya que la fuerza en ambos sistemas SI y BG, la ecuación F = m·a se aplica <b>directamente, sin constante correctora</b>, por ejemplo, si F = m·a = 1 kg·m/s² = <b>1 N</b>; si F = m·a = 1 slug·ft/s² = <b>1 lbf</b>. En el caso del sistema Inglés lo recomendable es convertir la lbm a slug: <b>1 slug = 32.174 lbm</b>. Toda ecuación física válida debe ser <b>dimensionalmente homogénea</b>. <i>(Apuntes "Preliminares" §1.2–1.3; Çengel §1-2; Potter y Scott cap. 1)</i></p>
+  </details>
+  <div class="grid grid-2">
+    <div class="card">
+      <h2>Conversor SI ↔ inglés <span class="chip">interactivo</span></h2>
+      <label>Magnitud</label>
+      <select id="convCat" onchange="buildConvUnits()"></select>
+      <div class="flexrow">
+        <div><label>Valor</label><input type="number" id="convVal" value="1" step="any" oninput="doConvert()"></div>
+        <div><label>De</label><select id="convFrom" onchange="doConvert()"></select></div>
+        <div><label>A</label><select id="convTo" onchange="doConvert()"></select></div>
+      </div>
+      <div class="result" id="convRes"></div>
+      <div id="convTable"></div>
+    </div>
+    <div class="card">
+      <h2>Fuerza y masa: SI · BG · inglés de ingeniería <span class="chip">F = m·a</span></h2>
+      <p style="font-size:.85rem;color:var(--muted)">Compare las tres rutas para calcular la misma fuerza. En el BG no se necesita g<sub>c</sub>; con lbm sí.</p>
+      <div class="flexrow">
+        <div><label>Masa</label><input type="number" id="gcM" value="1" step="any" oninput="updateGc()"></div>
+        <div><label>Unidad</label><select id="gcMu" onchange="updateGc()">
+          <option value="lbm" selected>lbm</option><option value="slug">slug</option><option value="kg">kg</option></select></div>
+      </div>
+      <div class="flexrow">
+        <div><label>Aceleración</label><input type="number" id="gcA" value="32.174" step="any" oninput="updateGc()"></div>
+        <div><label>Unidad</label><select id="gcAu" onchange="updateGc()">
+          <option value="ft" selected>ft/s²</option><option value="m">m/s²</option></select></div>
+      </div>
+      <div class="result" id="gcRes"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2>Prefijos del SI</h2>
+    <table>
+      <tr><th>Prefijo</th><th>Símbolo</th><th>Factor</th><th>Prefijo</th><th>Símbolo</th><th>Factor</th></tr>
+      <tr><td>tera</td><td class="mono">T</td><td class="mono">10¹²</td><td>deci</td><td class="mono">d</td><td class="mono">10⁻¹</td></tr>
+      <tr><td>giga</td><td class="mono">G</td><td class="mono">10⁹</td><td>centi</td><td class="mono">c</td><td class="mono">10⁻²</td></tr>
+      <tr><td>mega</td><td class="mono">M</td><td class="mono">10⁶</td><td>mili</td><td class="mono">m</td><td class="mono">10⁻³</td></tr>
+      <tr><td>kilo</td><td class="mono">k</td><td class="mono">10³</td><td>micro</td><td class="mono">µ</td><td class="mono">10⁻⁶</td></tr>
+      <tr><td>hecto</td><td class="mono">h</td><td class="mono">10²</td><td>nano</td><td class="mono">n</td><td class="mono">10⁻⁹</td></tr>
+      <tr><td>deca</td><td class="mono">da</td><td class="mono">10¹</td><td>pico</td><td class="mono">p</td><td class="mono">10⁻¹²</td></tr>
+    </table>
+  </div>
+  <div class="card ex-card" style="margin-top:16px">
+    <h2>Ejercicio <span class="chip">aleatorio</span></h2>
+    <button class="btn" onclick="genEx(1)">Generar ejercicio</button>
+    <p id="ex1Text" style="margin-top:10px;font-weight:500"></p>
+    <div class="flexrow" id="ex1Input" style="display:none">
+      <div><label>Su respuesta</label><input type="number" id="ex1Ans" step="any"></div>
+      <div><button class="btn sec" onclick="checkEx(1)">Verificar</button></div>
+    </div>
+    <div class="feedback" id="ex1Fb"></div>
+  </div>
+</section>
+
+<!-- ============ MÓDULO 2 ============ -->
+<section id="mod2" class="module">
+  <details class="concepto">
+    <summary><h3>Concepto — Densidad, volumen específico y peso específico</h3><span class="toggle-hint">desplegar / contraer</span></summary>
+    <p>La <b>densidad</b> ρ = m/V [kg/m³] es la masa por unidad de volumen; el <b>volumen específico</b> v = V/m = 1/ρ [m³/kg] es su recíproco y es la forma preferida en termodinámica por ser propiedad intensiva referida a la masa. El <b>peso específico</b> γ = ρg [N/m³] es el peso por unidad de volumen. La <b>densidad relativa</b> DR = ρ/ρ<sub>H₂O</sub> se refiere al agua a 4 °C (1000 kg/m³).</p>
+  </details>
+  <div class="grid grid-2">
+    <div class="card">
+      <h2 data-sys>Calculadora ligada ρ — v — γ</h2>
+      <label>Masa m = <span class="slider-val" id="mVal">100.0</span> <span id="mUnit">kg</span></label>
+      <input type="range" id="mSlider" min="0.1" max="500" step="0.1" value="100" oninput="updateDensity()">
+      <label>Volumen V = <span class="slider-val" id="vVal">0.100</span> <span id="vUnit">m³</span></label>
+      <input type="range" id="vSlider" min="0.001" max="1" step="0.001" value="0.1" oninput="updateDensity()">
+      <div style="margin-top:10px">
+        <button class="btn sec" onclick="setFluid('agua')">Agua (997)</button>
+        <button class="btn sec" onclick="setFluid('aire')">Aire (1.184)</button>
+        <button class="btn sec" onclick="setFluid('mercurio')">Mercurio (13 600)</button>
+      </div>
+      <div class="result" id="densRes"></div>
+    </div>
+    <div class="card">
+      <h2 data-sys>Relación recíproca ρ – v</h2>
+      <canvas role="img" aria-label="Representación gráfica de Preliminares. Los datos se describen en la página." id="rhoChart"></canvas>
+      <p style="font-size:.8rem;color:var(--muted);margin-top:6px">Escalas logarítmicas. El punto marca el estado actual de los deslizadores.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2 data-sys>Variación con la temperatura: ρ y γ del agua, S del mercurio <span class="chip">T en °C</span></h2>
+    <details class="concepto" style="margin-bottom:12px">
+      <summary><h3>Descripción</h3><span class="toggle-hint">desplegar / contraer</span></summary>
+      <p style="font-size:.85rem;color:var(--muted)">La densidad y el peso específico del agua dependen de la temperatura; algunas relaciones aproximadas son
+      ρ<sub>H₂O</sub> = 1000 − (T − 4)²/180 [kg/m³] y γ<sub>H₂O</sub> = 9800 − (T − 4)²/18 [N/m³].
+      La gravedad específica del mercurio puede calcularse con S<sub>Hg</sub> = 13.6 − 0.0024·T.
+      En ambas relaciones la temperatura debe introducirse en <b>°C</b>. Obsérvese el máximo de ρ del agua en T = 4 °C.</p>
+    </details>
+    <div class="grid grid-2">
+      <div>
+        <label>Temperatura T = <span class="slider-val" id="twVal">20.0</span> <span id="twUnit">°C</span></label>
+        <input type="range" id="twSlider" min="0" max="100" step="0.5" value="20" oninput="updateTprops()">
+        <div class="flexrow" style="margin-top:8px">
+          <div><label>Capture T (<span id="twInUnit">°C</span>)</label><input type="number" id="twIn" value="20" step="any" oninput="setTwFromField()"></div>
+        </div>
+        <div class="result" id="twRes"></div>
+      </div>
+      <div>
+        <div class="sheet-tabs" id="twTabs">
+          <button class="active" data-p="rho" onclick="selTwProp('rho',this)">ρ_H₂O</button>
+          <button data-p="gam" onclick="selTwProp('gam',this)">γ_H₂O</button>
+          <button data-p="shg" onclick="selTwProp('shg',this)">S_Hg</button>
+        </div>
+        <canvas role="img" aria-label="Representación gráfica de Preliminares. Los datos se describen en la página." id="twChart" style="max-height:280px"></canvas>
+        <p style="font-size:.8rem;color:var(--muted);margin-top:6px">El punto marca la temperatura del deslizador; también puede arrastrarse sobre la gráfica.</p>
+      </div>
+    </div>
+  </div>
+  <div class="card ex-card" style="margin-top:16px">
+    <h2>Ejercicio <span class="chip">aleatorio</span></h2>
+    <button class="btn" onclick="genEx(2)">Generar ejercicio</button>
+    <p id="ex2Text" style="margin-top:10px;font-weight:500"></p>
+    <div class="flexrow" id="ex2Input" style="display:none">
+      <div><label>Su respuesta</label><input type="number" id="ex2Ans" step="any"></div>
+      <div><button class="btn sec" onclick="checkEx(2)">Verificar</button></div>
+    </div>
+    <div class="feedback" id="ex2Fb"></div>
+  </div>
+</section>
+
+<!-- ============ MÓDULO 3 ============ -->
+<section id="mod3" class="module">
+  <details class="concepto">
+    <summary><h3>Concepto — Presión</h3><span class="toggle-hint">desplegar / contraer</span></summary>
+    <p>La <b>presión</b> P = F/A [Pa = N/m²] es la fuerza normal por unidad de área ejercida por un fluido. En un fluido en reposo varía con la profundidad según ΔP = ρgh. El <b>manómetro</b> mide la presión <b>manométrica</b> P<sub>man</sub> = P<sub>abs</sub> − P<sub>atm</sub>; el <b>barómetro</b> (Torricelli) mide la presión atmosférica con una columna de mercurio: P<sub>atm</sub> = ρ<sub>Hg</sub>·g·h. Presiones por debajo de la atmosférica se expresan como <b>presión de vacío</b> P<sub>vac</sub> = P<sub>atm</sub> − P<sub>abs</sub>.</p>
+  </details>
+  <div class="row-man-bar">
+    <div class="card">
+      <h2 data-sys>Manómetro en U <span class="chip">P = ρgh</span></h2>
+      <label>Fluido manométrico</label>
+      <select id="manFluid" onchange="updateManometer()">
+        <option value="997" selected>Agua (ρ = 997 kg/m³)</option>
+        <option value="13600">Mercurio (ρ = 13 600 kg/m³)</option>
+        <option value="850">Aceite (ρ = 850 kg/m³)</option>
+      </select>
+      <label>Diferencia de alturas h = <span class="slider-val" id="hVal">0.30</span> <span id="hUnit">m</span></label>
+      <input type="range" id="hSlider" min="0" max="1" step="0.005" value="0.3" oninput="updateManometer()">
+      <div style="text-align:center">
+      <svg id="manSvg" viewBox="0 0 340 250" width="100%" style="max-width:340px">
+        <rect x="18" y="60" width="70" height="56" rx="6" fill="#e3f0fd" stroke="#1976d2"/>
+        <text x="53" y="84" text-anchor="middle" font-size="11" fill="#1565c0">Gas</text>
+        <text x="53" y="100" text-anchor="middle" font-size="11" fill="#1565c0">P</text>
+        <rect x="88" y="80" width="34" height="14" fill="#e3f0fd" stroke="#1976d2"/>
+        <!-- tubo U -->
+        <path d="M122 40 V210 a14 14 0 0 0 14 14 h60 a14 14 0 0 0 14 -14 V40" fill="none" stroke="#90a4ae" stroke-width="4"/>
+        <!-- fluido: pierna izquierda, codo, pierna derecha -->
+        <rect id="fluidL" x="124" y="130" width="24" height="92" fill="#4fc3f7"/>
+        <rect id="fluidB" x="124" y="206" width="84" height="16" fill="#4fc3f7"/>
+        <rect id="fluidR" x="184" y="94" width="24" height="128" fill="#4fc3f7"/>
+        <!-- cotas -->
+        <line id="dimTop" x1="240" y1="94" x2="240" y2="130" stroke="#c62828" stroke-width="1.5"/>
+        <line id="dimT1" x1="208" y1="94" x2="246" y2="94" stroke="#c62828" stroke-width="1" stroke-dasharray="3,2"/>
+        <line id="dimT2" x1="148" y1="130" x2="246" y2="130" stroke="#c62828" stroke-width="1" stroke-dasharray="3,2"/>
+        <text id="dimLbl" x="250" y="116" font-size="12" fill="#c62828" font-weight="600">h</text>
+        <text x="196" y="32" text-anchor="middle" font-size="11" fill="#5c6b84">abierto a P_atm</text>
+      </svg>
+      </div>
+      <div class="result" id="manRes"></div>
+    </div>
+    <div class="card">
+      <h2 data-sys>Barómetro y variación con la elevación</h2>
+      <label>Altitud z = <span class="slider-val" id="zVal">0</span> <span id="zUnit">m</span></label>
+      <input type="range" id="zSlider" min="0" max="20000" step="50" value="0" oninput="updateAltitude()">
+      <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+        <svg id="barSvg" viewBox="0 0 110 230" width="120">
+          <rect x="20" y="190" width="70" height="26" rx="4" fill="#90a4ae"/>
+          <rect x="44" y="20" width="22" height="178" fill="#eceff1" stroke="#607d8b" stroke-width="2"/>
+          <rect x="44" y="20" width="22" height="8" fill="#fff"/>
+          <text x="55" y="14" text-anchor="middle" font-size="9" fill="#5c6b84">vacío</text>
+          <rect id="hgCol" x="46" y="46" width="18" height="152" fill="#78909c"/>
+          <text id="hgLbl" x="100" y="120" text-anchor="end" font-size="10" fill="#1a2233" font-weight="600"></text>
+        </svg>
+        <div style="flex:1;min-width:320px"><canvas role="img" aria-label="Representación gráfica de Preliminares. Los datos se describen en la página." id="altChart" style="max-height:420px"></canvas></div>
+      </div>
+      <div class="result" id="altRes"></div>
+    </div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card" style="grid-column:1/-1">
+      <h2 data-sys>Propiedades de la atmósfera a gran altitud</h2>
+      <details class="concepto" style="margin-bottom:12px">
+        <summary><h3>Descripción</h3><span class="toggle-hint">desplegar / contraer</span></summary>
+        <p style="font-size:.84rem;color:var(--muted)">Atmósfera estándar: condiciones medias anuales a 45° de latitud, referidas a 15 °C (59 °F) al nivel del mar. Seleccione una hoja para ver la tabla o la gráfica de cada propiedad; el renglón/punto resaltado corresponde a la altitud del deslizador y el sistema de unidades sigue al selector global SI/Inglés.</p>
+      </details>
+      <div class="sheet-tabs" id="atmSheets"></div>
+      <div id="atmTable" style="max-height:340px;overflow:auto"></div>
+      <div id="atmChartWrap" style="display:none"><canvas role="img" aria-label="Representación gráfica de Preliminares. Los datos se describen en la página." id="atmPropChart" style="max-height:320px"></canvas></div>
+    </div>
+    <div class="card">
+      <h2 data-sys>Presión absoluta, manométrica y de vacío</h2>
+      <div class="flexrow">
+        <div><label>P. atmosférica (kPa)</label><input type="number" id="patmIn" value="101.325" step="any" oninput="updateAbs()"></div>
+        <div><label>P. manométrica (kPa, negativa = vacío)</label><input type="number" id="pmanIn" value="50" step="any" oninput="updateAbs()"></div>
+      </div>
+      <div id="absBars" style="display:flex;gap:24px;align-items:flex-end;height:170px;margin-top:14px;padding:0 10px;border-bottom:2px solid var(--border)"></div>
+      <div class="result" id="absRes"></div>
+    </div>
+    <div class="card">
+      <h2>Conversor de unidades de presión</h2>
+      <div class="flexrow">
+        <div><label>Valor</label><input type="number" id="pConvVal" value="1" step="any" oninput="doPConvert()"></div>
+        <div><label>Unidad</label><select id="pConvFrom" onchange="doPConvert()"></select></div>
+      </div>
+      <div id="pConvTable"></div>
+    </div>
+  </div>
+  <div class="card ex-card" style="margin-top:16px">
+    <h2>Ejercicio <span class="chip">aleatorio</span></h2>
+    <button class="btn" onclick="genEx(3)">Generar ejercicio</button>
+    <p id="ex3Text" style="margin-top:10px;font-weight:500"></p>
+    <div class="flexrow" id="ex3Input" style="display:none">
+      <div><label>Su respuesta</label><input type="number" id="ex3Ans" step="any"></div>
+      <div><button class="btn sec" onclick="checkEx(3)">Verificar</button></div>
+    </div>
+    <div class="feedback" id="ex3Fb"></div>
+  </div>
+</section>
+
+<!-- ============ MÓDULO 4 ============ -->
+<section id="mod4" class="module">
+  <details class="concepto">
+    <summary><h3>Concepto — Ley Cero y escalas de temperatura</h3><span class="toggle-hint">desplegar / contraer</span></summary>
+    <p>La <b>Ley Cero de la termodinámica</b> establece que si dos cuerpos están en equilibrio térmico con un tercero, están en equilibrio térmico entre sí; esto fundamenta la medición de temperatura. Las escalas absolutas son <b>Kelvin</b> (SI) y <b>Rankine</b> (inglés): T(K) = T(°C) + 273.15; T(°R) = T(°F) + 459.67 = 1.8·T(K). Para diferencias: ΔT(K) = ΔT(°C) y ΔT(°R) = ΔT(°F) = 1.8·ΔT(K).</p>
+  </details>
+  <div class="grid grid-2">
+    <div class="card">
+      <h2>Termómetro y conversión de escalas</h2>
+      <div class="flexrow">
+        <div><label>Temperatura</label><input type="number" id="tempIn" value="25" step="any" oninput="updateTemp()"></div>
+        <div><label>Escala</label>
+          <select id="tempScale" onchange="updateTemp()">
+            <option value="C" selected>°C</option><option value="K">K</option>
+            <option value="F">°F</option><option value="R">°R</option>
+          </select></div>
+      </div>
+      <div style="display:flex;gap:18px;align-items:center;margin-top:10px">
+        <svg viewBox="0 0 70 230" width="64">
+          <rect x="28" y="14" width="14" height="170" rx="7" fill="#eceff1" stroke="#90a4ae"/>
+          <circle cx="35" cy="200" r="16" fill="#e53935"/>
+          <rect id="thMerc" x="31" y="100" width="8" height="90" fill="#e53935"/>
+          <text x="50" y="22" font-size="9" fill="#5c6b84">150°C</text>
+          <text x="50" y="186" font-size="9" fill="#5c6b84">−50°C</text>
+        </svg>
+        <div class="result" id="tempRes" style="flex:1"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2 data-sys>Ley Cero — equilibrio térmico</h2>
+      <div class="blocks">
+        <div class="block" id="blkA"><small>Cuerpo A</small><span class="t" id="tA">90.0 °C</span></div>
+        <div class="block" id="blkB"><small>Cuerpo B</small><span class="t" id="tB">20.0 °C</span></div>
+        <div class="block" id="blkC"><small>Cuerpo C</small><span class="t" id="tC">55.0 °C</span></div>
+      </div>
+      <label>T<sub>A</sub> inicial = <span class="slider-val" id="tAval">90</span> <span id="tAunit">°C</span></label>
+      <input type="range" id="tAslider" min="0" max="100" value="90" oninput="resetBlocks()">
+      <label>T<sub>B</sub> inicial = <span class="slider-val" id="tBval">20</span> <span id="tBunit">°C</span></label>
+      <input type="range" id="tBslider" min="0" max="100" value="20" oninput="resetBlocks()">
+      <label>T<sub>C</sub> inicial = <span class="slider-val" id="tCval">55</span> <span id="tCunit">°C</span></label>
+      <input type="range" id="tCslider" min="0" max="100" value="55" oninput="resetBlocks()">
+      <button class="btn" onclick="startContact()">Poner en contacto térmico</button>
+      <button class="btn sec" onclick="resetBlocks()">Reiniciar</button>
+      <div class="result" id="zeroRes">Los tres cuerpos (masas y c<sub>p</sub> iguales) evolucionarán hacia una temperatura común de equilibrio.</div>
+    </div>
+    <div class="card">
+      <h2>Diferencias de temperatura ΔT</h2>
+      <div class="flexrow">
+        <div><label>ΔT</label><input type="number" id="dtIn" value="10" step="any" oninput="updateDT()"></div>
+        <div><label>Escala</label>
+          <select id="dtScale" onchange="updateDT()">
+            <option value="C" selected>°C</option><option value="K">K</option>
+            <option value="F">°F</option><option value="R">°R</option>
+          </select></div>
+      </div>
+      <div class="result" id="dtRes"></div>
+      <p style="font-size:.82rem;color:var(--muted);margin-top:8px">Obsérvese que para <i>diferencias</i> no se aplican los desplazamientos de origen (273.15 o 32), únicamente el factor de escala 1.8.</p>
+    </div>
+  </div>
+  <div class="card ex-card" style="margin-top:16px">
+    <h2>Ejercicio <span class="chip">aleatorio</span></h2>
+    <button class="btn" onclick="genEx(4)">Generar ejercicio</button>
+    <p id="ex4Text" style="margin-top:10px;font-weight:500"></p>
+    <div class="flexrow" id="ex4Input" style="display:none">
+      <div><label>Su respuesta</label><input type="number" id="ex4Ans" step="any"></div>
+      <div><button class="btn sec" onclick="checkEx(4)">Verificar</button></div>
+    </div>
+    <div class="feedback" id="ex4Fb"></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const G=9.81, PATM=101.325; // kPa
+function fmt(x,sig=5){
+  if(!isFinite(x))return "—";
+  if(x===0)return "0";
+  const a=Math.abs(x);
+  if(a>=1e6||a<1e-3)return x.toExponential(sig-1).replace("e","×10^");
+  return Number(x.toPrecision(sig)).toLocaleString("en-US",{maximumFractionDigits:8});
+}
+let unitSystem="SI";
+function setSystem(s){
+  unitSystem=s;
+  $("sysSI").classList.toggle("active",s==="SI");
+  $("sysEN").classList.toggle("active",s==="EN");
+  syncMiniSys();
+  if(typeof rebuildRhoChart==="function")rebuildRhoChart();
+  updateDensity();updateManometer();updateAltitude();updateAbs();updateTemp();
+  if(typeof updateTprops==="function")updateTprops(true);
+  if(typeof repaintBlocks==="function")repaintBlocks();
+}
+/* Mini-selectores SI/Inglés por tarjeta (sincronizados con el global) */
+function buildMiniSys(){
+  document.querySelectorAll("h2[data-sys]").forEach(h=>{
+    const sp=document.createElement("span"); sp.className="mini-sys";
+    sp.innerHTML=`<button data-s="SI" onclick="setSystem('SI')">SI</button><button data-s="EN" onclick="setSystem('EN')">Inglés</button>`;
+    h.appendChild(sp);
+  });
+  syncMiniSys();
+}
+function syncMiniSys(){
+  document.querySelectorAll(".mini-sys button").forEach(b=>b.classList.toggle("active",b.dataset.s===unitSystem));
+}
+
+/* ===================== MÓDULO 1: CONVERSOR ===================== */
+// factor: unidad → unidad base SI
+const UNITS={
+ "Masa":{base:"kg",u:{ "kg":1,"g":1e-3,"t (tonelada)":1000,"lbm":0.45359237,"oz":0.028349523,"slug":14.59390 }},
+ "Longitud":{base:"m",u:{ "m":1,"cm":0.01,"mm":1e-3,"km":1000,"in":0.0254,"ft":0.3048,"mi":1609.344 }},
+ "Fuerza":{base:"N",u:{ "N":1,"kN":1000,"kgf":9.80665,"lbf":4.4482216,"dyn":1e-5 }},
+ "Presión":{base:"Pa",u:{ "Pa":1,"kPa":1000,"MPa":1e6,"bar":1e5,"atm":101325,"psi":6894.757,"lbf/ft² (psf)":47.880259,"mmHg":133.3224,"inHg":3386.389,"kgf/cm²":98066.5 }},
+ "Energía":{base:"J",u:{ "J":1,"kJ":1000,"cal":4.184,"kcal":4184,"BTU":1055.056,"kWh":3.6e6,"ft·lbf":1.3558179 }},
+ "Potencia":{base:"W",u:{ "W":1,"kW":1000,"hp":745.6999,"BTU/h":0.29307107,"ft·lbf/s":1.3558179 }},
+ "Densidad":{base:"kg/m³",u:{ "kg/m³":1,"g/cm³":1000,"lbm/ft³":16.018463,"slug/ft³":515.3788 }},
+ "Volumen específico":{base:"m³/kg",u:{ "m³/kg":1,"cm³/g":1e-3,"L/kg":1e-3,"ft³/lbm":0.06242796 }}
+};
+function buildConvCats(){
+  $("convCat").innerHTML=Object.keys(UNITS).map(c=>`<option>${c}</option>`).join("");
+  buildConvUnits();
+}
+function buildConvUnits(){
+  const cat=$("convCat").value, us=Object.keys(UNITS[cat].u);
+  $("convFrom").innerHTML=us.map(u=>`<option>${u}</option>`).join("");
+  $("convTo").innerHTML=us.map(u=>`<option>${u}</option>`).join("");
+  $("convTo").selectedIndex=Math.min(1,us.length-1);
+  doConvert();
+}
+function convertU(cat,val,from,to){ return val*UNITS[cat].u[from]/UNITS[cat].u[to]; }
+function doConvert(){
+  const cat=$("convCat").value, v=parseFloat($("convVal").value);
+  const f=$("convFrom").value, t=$("convTo").value;
+  if(isNaN(v)){$("convRes").textContent="Introduzca un valor numérico.";return;}
+  const r=convertU(cat,v,f,t);
+  $("convRes").innerHTML=`<span class="big">${fmt(v)} ${f} = ${fmt(r)} ${t}</span>\nFactor: 1 ${f} = ${fmt(UNITS[cat].u[f]/UNITS[cat].u[t],6)} ${t}`;
+  let rows=Object.keys(UNITS[cat].u).map(u=>`<tr><td class="mono">${u}</td><td class="mono">${fmt(convertU(cat,v,f,u),6)}</td></tr>`).join("");
+  $("convTable").innerHTML=`<table><tr><th>Unidad</th><th>Equivalencia de ${fmt(v)} ${f}</th></tr>${rows}</table>`;
+}
+
+/* ---- Fuerza y masa: SI · BG · inglés de ingeniería ---- */
+const SLUG_KG=14.59390, LBM_KG=0.45359237, FT_M=0.3048, LBF_N=4.4482216, GC=32.174;
+function updateGc(){
+  const m=parseFloat($("gcM").value), a=parseFloat($("gcA").value);
+  if(isNaN(m)||isNaN(a)){$("gcRes").textContent="Introduzca valores numéricos.";return;}
+  const mu=$("gcMu").value, au=$("gcAu").value;
+  const mkg = mu==="kg"?m : mu==="lbm"?m*LBM_KG : m*SLUG_KG;
+  const ams = au==="m"?a : a*FT_M;
+  const mslug=mkg/SLUG_KG, mlbm=mkg/LBM_KG, afts=ams/FT_M;
+  const FN=mkg*ams, Flbf_bg=mslug*afts, Flbf_gc=mlbm*afts/GC;
+  $("gcRes").innerHTML=
+`<b>SI</b> (sin constante):
+F = m·a = ${fmt(mkg,5)} kg × ${fmt(ams,5)} m/s² = <span class="big">${fmt(FN,5)} N</span>
+
+<b>BG</b> (sin constante — 1 lbf ≡ 1 slug·ft/s²):
+m = ${fmt(mlbm,5)} lbm ÷ 32.174 = ${fmt(mslug,5)} slug
+F = m·a = ${fmt(mslug,5)} slug × ${fmt(afts,5)} ft/s² = <span class="big">${fmt(Flbf_bg,5)} lbf</span>
+
+<b>Inglés de ingeniería</b> (con g_c = 32.174 lbm·ft/(lbf·s²)):
+F = m·a/g_c = ${fmt(mlbm,5)} lbm × ${fmt(afts,5)} ft/s² ÷ 32.174 = <span class="big">${fmt(Flbf_gc,5)} lbf</span>
+
+Comprobación: ${fmt(Flbf_bg,5)} lbf × 4.4482 N/lbf = ${fmt(Flbf_bg*LBF_N,5)} N ✔`;
+}
+/* ===================== MÓDULO 2: DENSIDAD ===================== */
+let rhoChart=null;
+function setFluid(f){
+  const presets={agua:[99.7,0.1],aire:[1.184,1],mercurio:[272,0.02]};
+  $("mSlider").value=presets[f][0]; $("vSlider").value=presets[f][1];
+  updateDensity();
+}
+function updateDensity(){
+  const m=parseFloat($("mSlider").value), V=parseFloat($("vSlider").value);
+  if(unitSystem==="SI"){
+    $("mVal").textContent=m.toFixed(1); $("mUnit").textContent="kg";
+    $("vVal").textContent=V.toFixed(3); $("vUnit").textContent="m³";
+  }else{
+    $("mVal").textContent=(m/0.45359237).toFixed(1); $("mUnit").textContent="lbm";
+    $("vVal").textContent=(V/0.028316847).toFixed(3); $("vUnit").textContent="ft³";
+  }
+  const rho=m/V, v=V/m, gam=rho*G;
+  let txt;
+  if(unitSystem==="SI"){
+    txt=`ρ = m/V = ${fmt(rho)} kg/m³\nv = 1/ρ = ${fmt(v)} m³/kg\nγ = ρ·g = ${fmt(gam)} N/m³\nDR = ρ/ρ_H₂O = ${fmt(rho/1000,4)}`;
+  }else{
+    txt=`ρ = ${fmt(rho/16.018463)} lbm/ft³  (${fmt(rho)} kg/m³)\nv = ${fmt(v/0.06242796)} ft³/lbm  (${fmt(v)} m³/kg)\nγ = ${fmt(gam/157.087)} lbf/ft³  (${fmt(gam)} N/m³)\nDR = ${fmt(rho/1000,4)}`;
+  }
+  $("densRes").innerHTML=`<span class="big">ρ = ${fmt(rho)} kg/m³</span>\n`+txt;
+  if(rhoChart){
+    const px = unitSystem==="SI" ? v : v/0.06242796;
+    const py = unitSystem==="SI" ? rho : rho/16.018463;
+    rhoChart.data.datasets[1].data=[{x:px,y:py}]; rhoChart.update("none");
+  }
+}
+function buildRhoChart(){
+  const en = unitSystem==="EN";
+  const pts=[];
+  for(let i=-3.2;i<=0.5;i+=0.08){
+    const v=Math.pow(10,i);
+    pts.push(en?{x:v/0.06242796,y:(1/v)/16.018463}:{x:v,y:1/v});
+  }
+  const sciTick=v=>{if(!v||v===0)return'0';const e=Math.floor(Math.log10(Math.abs(v)));const m=+(v/Math.pow(10,e)).toPrecision(2);return`${m}×10${e<0?'⁻':''}${String(Math.abs(e)).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join('')}`;};
+  rhoChart=new Chart($("rhoChart"),{type:"line",data:{datasets:[
+    {label:"ρ = 1/v",data:pts,borderColor:"#1976d2",pointRadius:0,borderWidth:2},
+    {label:"Estado actual",data:[],backgroundColor:"#c62828",pointRadius:6,type:"scatter"}
+  ]},options:{responsive:true,animation:false,scales:{
+    x:{type:"logarithmic",title:{display:true,text:en?"v (ft³/lbm)":"v (m³/kg)"},ticks:{callback:sciTick}},
+    y:{type:"logarithmic",title:{display:true,text:en?"ρ (lbm/ft³)":"ρ (kg/m³)"},ticks:{callback:sciTick}}
+  },plugins:{legend:{labels:{font:{family:"IBM Plex Sans"}}}}}});
+}
+function rebuildRhoChart(){
+  if(rhoChart){rhoChart.destroy();rhoChart=null;}
+  if($("rhoChart"))buildRhoChart();
+}
+
+/* ---- Variación con T: ρ_H₂O y γ_H₂O (ec. 1.10), S_Hg (ec. 1.11); T en °C ---- */
+const TW_PROPS={
+ rho:{lbl:"ρ_H₂O = 1000 − (T−4)²/180",f:T=>1000-Math.pow(T-4,2)/180,
+      si:["ρ (kg/m³)",v=>v],en:["ρ (lbm/ft³)",v=>v/16.018463]},
+ gam:{lbl:"γ_H₂O = 9800 − (T−4)²/18",f:T=>9800-Math.pow(T-4,2)/18,
+      si:["γ (N/m³)",v=>v],en:["γ (lbf/ft³)",v=>v/157.087]},
+ shg:{lbl:"S_Hg = 13.6 − 0.0024·T",f:T=>13.6-0.0024*T,
+      si:["S_Hg (adim.)",v=>v],en:["S_Hg (adim.)",v=>v]}
+};
+let twProp="rho", twChart=null, twKey="";
+function selTwProp(p,btn){
+  twProp=p;
+  document.querySelectorAll("#twTabs button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  updateTprops(true);
+}
+function setTwFromField(){
+  const v=parseFloat($("twIn").value);
+  if(isNaN(v))return;
+  let T= unitSystem==="EN" ? (v-32)/1.8 : v;
+  T=Math.max(0,Math.min(100,T));
+  $("twSlider").value=T;
+  updateTprops();
+}
+function updateTprops(rebuild){
+  if(!$("twSlider"))return;
+  const T=parseFloat($("twSlider").value), en=unitSystem==="EN";
+  $("twVal").textContent= en ? (1.8*T+32).toFixed(1) : T.toFixed(1);
+  $("twUnit").textContent= en ? "°F" : "°C";
+  $("twInUnit").textContent= en ? "°F" : "°C";
+  if(document.activeElement!==$("twIn"))
+    $("twIn").value=+( en ? (1.8*T+32) : T ).toFixed(1);
+  const rho=TW_PROPS.rho.f(T), gam=TW_PROPS.gam.f(T), s=TW_PROPS.shg.f(T);
+  let txt;
+  if(en){
+    txt=`T = ${(1.8*T+32).toFixed(1)} °F = ${T.toFixed(1)} °C (las ecuaciones requieren °C)\nρ_H₂O = ${fmt(rho/16.018463,6)} lbm/ft³  (${fmt(rho,6)} kg/m³)\nγ_H₂O = ${fmt(gam/157.087,6)} lbf/ft³  (${fmt(gam,6)} N/m³)\nS_Hg = 13.6 − 0.0024×${T.toFixed(1)} = ${fmt(s,5)} ⇒ ρ_Hg ≈ ${fmt(s*62.42796,5)} lbm/ft³`;
+  }else{
+    txt=`ρ_H₂O = 1000 − (${T.toFixed(1)} − 4)²/180 = ${fmt(rho,6)} kg/m³\nγ_H₂O = 9800 − (${T.toFixed(1)} − 4)²/18 = ${fmt(gam,6)} N/m³\nS_Hg = 13.6 − 0.0024×${T.toFixed(1)} = ${fmt(s,5)} ⇒ ρ_Hg ≈ S·ρ_H₂O,4°C = ${fmt(s*1000,6)} kg/m³`;
+  }
+  const big={rho:`ρ_H₂O = ${en?fmt(rho/16.018463,6)+" lbm/ft³":fmt(rho,6)+" kg/m³"}`,
+             gam:`γ_H₂O = ${en?fmt(gam/157.087,6)+" lbf/ft³":fmt(gam,6)+" N/m³"}`,
+             shg:`S_Hg = ${fmt(s,5)}`}[twProp];
+  $("twRes").innerHTML=`<span class="big">${big}</span>\n`+txt;
+  // gráfica de la relación seleccionada (0–100 °C)
+  const p=TW_PROPS[twProp], conv=p[en?"en":"si"];
+  const cur={x:en?1.8*T+32:T, y:conv[1](p.f(T))};
+  const key=twProp+"|"+unitSystem;
+  if(twChart && twKey===key && !rebuild){
+    twChart.data.datasets[1].data=[cur]; twChart.update("none"); return;
+  }
+  const pts=[]; for(let t=0;t<=100;t+=1) pts.push({x:en?1.8*t+32:t, y:conv[1](p.f(t))});
+  if(twChart)twChart.destroy();
+  twChart=new Chart($("twChart"),{type:"line",data:{datasets:[
+    {label:conv[0],data:pts,borderColor:"#1976d2",pointRadius:0,borderWidth:2,fill:{target:"origin",above:"rgba(25,118,210,.06)"}},
+    {label:"T actual (arrastre el punto)",data:[cur],backgroundColor:"#c62828",pointRadius:7,pointHoverRadius:9,type:"scatter"}
+  ]},options:{responsive:true,animation:false,scales:{
+    x:{type:"linear",title:{display:true,text:en?"T (°F)":"T (°C)"},min:en?32:0,max:en?212:100},
+    y:{title:{display:true,text:conv[0]}}
+  },plugins:{legend:{display:false},
+    title:{display:true,text:p.lbl+"  (T en °C)",font:{family:"IBM Plex Sans",size:13}},
+    tooltip:{callbacks:{label:ctx=>`${conv[0]}: ${ctx.parsed.y.toPrecision(6)}`}}}}});
+  twKey=key;
+}
+function enableTwDrag(){
+  const cv=$("twChart"); if(!cv)return;
+  cv.style.cursor="ew-resize";
+  let drag=false;
+  const setFrom=e=>{
+    if(!twChart||!twChart.scales||!twChart.scales.x)return;
+    const rect=cv.getBoundingClientRect();
+    const xVal=twChart.scales.x.getValueForPixel(e.clientX-rect.left);
+    let T= unitSystem==="EN" ? (xVal-32)/1.8 : xVal;
+    T=Math.max(0,Math.min(100,T));
+    $("twSlider").value=T;
+    updateTprops();
+  };
+  cv.addEventListener("pointerdown",e=>{drag=true;cv.setPointerCapture(e.pointerId);setFrom(e);e.preventDefault();});
+  cv.addEventListener("pointermove",e=>{if(drag)setFrom(e);});
+  cv.addEventListener("pointerup",()=>drag=false);
+  cv.addEventListener("pointercancel",()=>drag=false);
+}
+
+/* ===================== MÓDULO 3: PRESIÓN ===================== */
+function updateManometer(){
+  const rho=parseFloat($("manFluid").value), h=parseFloat($("hSlider").value);
+  if(unitSystem==="SI"){
+    $("hVal").textContent=h.toFixed(2); $("hUnit").textContent="m";
+  }else{
+    $("hVal").textContent=(h/0.3048).toFixed(2); $("hUnit").textContent="ft";
+  }
+  // opciones del selector de fluido en las unidades del sistema activo
+  const nombres={997:"Agua",13600:"Mercurio",850:"Aceite"};
+  Array.from($("manFluid").options).forEach(o=>{
+    const r=parseFloat(o.value);
+    o.textContent = unitSystem==="SI"
+      ? `${nombres[r]} (ρ = ${r.toLocaleString()} kg/m³)`
+      : `${nombres[r]} (ρ = ${(r/16.018463).toFixed(2)} lbm/ft³)`;
+  });
+  const colors={997:"#4fc3f7",13600:"#90a4ae",850:"#ffb74d"};
+  const col=colors[rho]||"#4fc3f7";
+  ["fluidL","fluidB","fluidR"].forEach(id=>$(id).setAttribute("fill",col));
+  // geometría: línea media y=160; escala 120 px por metro (h máx 1 m → ±60 px)
+  const mid=160, scale=120, dy=h*scale/2;
+  const yL=mid+dy, yR=mid-dy;
+  $("fluidL").setAttribute("y",yL); $("fluidL").setAttribute("height",222-yL);
+  $("fluidR").setAttribute("y",yR); $("fluidR").setAttribute("height",222-yR);
+  $("dimTop").setAttribute("y1",yR); $("dimTop").setAttribute("y2",yL);
+  $("dimT1").setAttribute("y1",yR); $("dimT1").setAttribute("y2",yR);
+  $("dimT2").setAttribute("y1",yL); $("dimT2").setAttribute("y2",yL);
+  $("dimLbl").setAttribute("y",(yL+yR)/2+4);
+  const Pman=rho*G*h; // Pa
+  const Pabs=PATM*1000+Pman;
+  let txt;
+  if(unitSystem==="SI"){
+    txt=`P_man = ρ·g·h = ${fmt(rho)}·9.81·${h.toFixed(2)}\n     = ${fmt(Pman)} Pa = ${fmt(Pman/1000)} kPa\nP_abs = P_atm + P_man = ${fmt(Pabs/1000)} kPa`;
+  }else{
+    txt=`P_man = ${fmt(Pman/6894.757)} psi  (${fmt(Pman/1000)} kPa)\nP_abs = ${fmt(Pabs/6894.757)} psia  (${fmt(Pabs/1000)} kPa)`;
+  }
+  $("manRes").innerHTML=`<span class="big">P_man = ${fmt(Pman/1000)} kPa</span>\n`+txt;
+}
+let altChart=null;
+/* Atmósfera estándar (base de las Tablas A-16 / A-16E de Çengel):
+   troposfera (z ≤ 11 000 m): T = 288.15 − 0.0065·z;  P = 101.325·(1 − 2.25577×10⁻⁵·z)^5.25588
+   estratosfera baja (11–20 km): T = 216.65 K;  P = 22.632·exp(−(z−11000)/6341.62)
+   g = 9.807 − 3.32×10⁻⁶·z;  ρ = P/(R·T);  c = √(k·R·T);  μ Sutherland;  k(T) conductividad */
+function stdAtm(z){
+  let T,P;
+  if(z<=11000){ T=288.15-0.0065*z; P=101.325*Math.pow(1-2.25577e-5*z,5.25588); }
+  else{ T=216.65; P=22.632*Math.exp(-(z-11000)/6341.62); }
+  const g=9.80665-3.32e-6*z;
+  const rho=P/(0.287*T);            // kg/m³ (P en kPa, R = 0.287 kJ/kg·K)
+  const c=20.05*Math.sqrt(T);       // m/s
+  const mu=1.458e-6*Math.pow(T,1.5)/(T+110.4);                       // kg/m·s
+  const k=2.648151e-3*Math.pow(T,1.5)/(T+245.4*Math.pow(10,-12/T));  // W/m·K
+  return {T,P,g,rho,c,mu,k};
+}
+function pAtAlt(z){ return stdAtm(z).P; } // kPa
+function updateAltitude(){
+  const z=parseFloat($("zSlider").value);
+  if(unitSystem==="SI"){
+    $("zVal").textContent=z.toFixed(0); $("zUnit").textContent="m";
+  }else{
+    $("zVal").textContent=(z/0.3048).toFixed(0); $("zUnit").textContent="ft";
+  }
+  const a=stdAtm(z), P=a.P;
+  const hHg=P*1000/(13600*G); // m
+  // barómetro: columna 0–800 mm sobre 152 px útiles (y de 46 a 198)
+  const hpx=Math.min(152,hHg*1000/800*152);
+  $("hgCol").setAttribute("y",198-hpx); $("hgCol").setAttribute("height",hpx);
+  $("hgLbl").textContent=`${(hHg*1000).toFixed(0)} mm Hg`;
+  let txt;
+  if(unitSystem==="SI"){
+    txt=`T = ${fmt(a.T-273.15,5)} °C   g = ${a.g.toFixed(3)} m/s²\nρ = ${fmt(a.rho,5)} kg/m³   c (sonido) = ${a.c.toFixed(1)} m/s\nμ = ${a.mu.toExponential(3)} kg/m·s   k = ${a.k.toFixed(4)} W/m·K\nColumna barométrica: h = P/(ρ_Hg·g) = ${(hHg*1000).toFixed(1)} mm Hg`;
+  }else{
+    txt=`z = ${fmt(z/0.3048,6)} ft   T = ${fmt((a.T-273.15)*1.8+32,5)} °F   g = ${(a.g/0.3048).toFixed(3)} ft/s²\nP = ${fmt(P/6.894757,5)} psia   ρ = ${fmt(a.rho/16.018463,5)} lbm/ft³\nc = ${(a.c/0.3048).toFixed(1)} ft/s   h = ${(hHg*1000/25.4).toFixed(2)} in Hg`;
+  }
+  $("altRes").innerHTML=`<span class="big">P_atm = ${fmt(P)} kPa</span>\n`+txt;
+  if(altChart){ altChart.data.datasets[1].data=[{x:z,y:P}]; altChart.update("none"); }
+  refreshAtmView(z);
+}
+/* ---- Hojas (tabla + gráficas) de la atmósfera estándar ---- */
+let atmSheet="tabla", atmPropChart=null;
+const ATM_PROPS={
+ T:{lbl:"Temperatura",si:["T (°C)",a=>a.T-273.15],en:["T (°F)",a=>(a.T-273.15)*1.8+32]},
+ P:{lbl:"Presión",si:["P (kPa)",a=>a.P],en:["P (psia)",a=>a.P/6.894757]},
+ rho:{lbl:"Densidad ρ",si:["ρ (kg/m³)",a=>a.rho],en:["ρ (lbm/ft³)",a=>a.rho/16.018463]},
+ c:{lbl:"Vel. del sonido",si:["c (m/s)",a=>a.c],en:["c (ft/s)",a=>a.c/0.3048]},
+ g:{lbl:"Gravedad g",si:["g (m/s²)",a=>a.g],en:["g (ft/s²)",a=>a.g/0.3048]},
+ mu:{lbl:"Viscosidad μ",si:["μ (kg/m·s)",a=>a.mu],en:["μ (lbm/ft·s)",a=>a.mu*0.671969]},
+ k:{lbl:"Conductividad k",si:["k (W/m·K)",a=>a.k],en:["k (Btu/h·ft·R)",a=>a.k*0.577789]}
+};
+function buildAtmSheets(){
+  let html=`<button class="active" data-s="tabla" onclick="selAtmSheet('tabla',this)">Tabla</button>`;
+  Object.keys(ATM_PROPS).forEach(k=>html+=`<button data-s="${k}" onclick="selAtmSheet('${k}',this)">${ATM_PROPS[k].lbl}</button>`);
+  $("atmSheets").innerHTML=html;
+}
+function selAtmSheet(s,btn){
+  atmSheet=s;
+  document.querySelectorAll("#atmSheets button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  refreshAtmView(parseFloat($("zSlider").value));
+}
+function refreshAtmView(z){
+  const isTable = atmSheet==="tabla";
+  $("atmTable").style.display = isTable ? "block" : "none";
+  $("atmChartWrap").style.display = isTable ? "none" : "block";
+  if(isTable) buildAtmTable(z); else renderAtmChart(z);
+}
+/* Plugin: zonas de la atmósfera terrestre (troposfera / estratosfera, tropopausa a 11 km) */
+const zonesPlugin={id:"zones",
+ beforeDraw(chart,args,opts){
+  if(!opts||!opts.show)return;
+  const {ctx,chartArea}=chart; if(!chartArea)return;
+  const {top,bottom}=chartArea, x=chart.scales.x;
+  const conv=opts.ftAxis?1/0.3048:1; // límites definidos en metros → unidades del eje
+  const zones=[[0,11000,"rgba(76,175,80,0.10)","Troposfera"],[11000,20000,"rgba(156,39,176,0.08)","Estratosfera"]];
+  ctx.save();
+  zones.forEach(([z0,z1,col,name])=>{
+    const x0=Math.max(x.getPixelForValue(z0*conv),chartArea.left);
+    const x1=Math.min(x.getPixelForValue(z1*conv),chartArea.right);
+    if(x1<=x0)return;
+    ctx.fillStyle=col; ctx.fillRect(x0,top,x1-x0,bottom-top);
+    ctx.fillStyle="#5c6b84"; ctx.font="600 11px 'IBM Plex Sans'"; ctx.textAlign="center";
+    ctx.fillText(name,(x0+x1)/2,top+14);
+  });
+  const xt=x.getPixelForValue(11000*conv);
+  if(xt>chartArea.left&&xt<chartArea.right){
+    ctx.strokeStyle="rgba(198,40,40,.55)"; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(xt,top); ctx.lineTo(xt,bottom); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle="rgba(198,40,40,.85)"; ctx.font="10px 'IBM Plex Sans'";
+    ctx.fillText(opts.ftAxis?"Tropopausa (36 089 ft)":"Tropopausa (11 km)",xt,bottom-8);
+  }
+  ctx.restore();
+ }};
+Chart.register(zonesPlugin);
+let atmChartKey="";
+function renderAtmChart(zSel){
+  const p=ATM_PROPS[atmSheet];
+  const conf = unitSystem==="SI" ? p.si : p.en;
+  const xconv = unitSystem==="SI" ? 1 : 1/0.3048;
+  const cur={x:zSel*xconv,y:conf[1](stdAtm(zSel))};
+  const key=atmSheet+"|"+unitSystem;
+  if(atmPropChart && atmChartKey===key){ // solo mover el punto (arrastre fluido)
+    atmPropChart.data.datasets[1].data=[cur]; atmPropChart.update("none"); return;
+  }
+  const pts=[]; for(let z=0;z<=20000;z+=250) pts.push({x:z*xconv,y:conf[1](stdAtm(z))});
+  const xlbl = unitSystem==="SI" ? "z (m)" : "z (ft)";
+  if(atmPropChart) atmPropChart.destroy();
+  atmPropChart=new Chart($("atmPropChart"),{type:"line",data:{datasets:[
+    {label:conf[0],data:pts,borderColor:"#1976d2",pointRadius:0,borderWidth:2,fill:{target:"origin",above:"rgba(25,118,210,.06)"}},
+    {label:"Altitud actual (arrastre el punto)",data:[cur],backgroundColor:"#c62828",pointRadius:7,pointHoverRadius:9,type:"scatter"}
+  ]},options:{responsive:true,animation:false,scales:{
+    x:{type:"linear",title:{display:true,text:xlbl},max:20000*xconv},
+    y:{title:{display:true,text:conf[0]},
+       ticks:{callback:v=>{const a=Math.abs(v);return (a!==0&&a<0.01)?Number(v).toExponential(2):v;}}}
+  },plugins:{legend:{display:false},
+    zones:{show:true,ftAxis:unitSystem==="EN"},
+    title:{display:true,text:`${p.lbl} vs altitud — atmósfera estándar (${unitSystem==="SI"?"A-16":"A-16E"})`,font:{family:"IBM Plex Sans",size:13}},
+    tooltip:{callbacks:{label:ctx=>`${conf[0]}: ${ctx.parsed.y.toPrecision(5)}`}}}}});
+  atmChartKey=key;
+}
+/* Arrastre del punto resaltado: mover el puntero sobre la gráfica fija la altitud */
+function enableAltDrag(canvasId,getChart){
+  const cv=$(canvasId); if(!cv)return;
+  cv.style.cursor="ew-resize";
+  let drag=false;
+  const setFrom=e=>{
+    const ch=getChart(); if(!ch||!ch.scales||!ch.scales.x)return;
+    const rect=cv.getBoundingClientRect();
+    const xVal=ch.scales.x.getValueForPixel(e.clientX-rect.left);
+    const mPerUnit=(canvasId==="atmPropChart"&&unitSystem==="EN")?0.3048:1;
+    let zm=xVal*mPerUnit;
+    zm=Math.max(0,Math.min(20000,zm));
+    $("zSlider").value=zm;
+    updateAltitude();
+  };
+  cv.addEventListener("pointerdown",e=>{drag=true;cv.setPointerCapture(e.pointerId);setFrom(e);e.preventDefault();});
+  cv.addEventListener("pointermove",e=>{if(drag)setFrom(e);});
+  cv.addEventListener("pointerup",()=>drag=false);
+  cv.addEventListener("pointercancel",()=>drag=false);
+}
+function buildAtmTable(zSel){
+  const tbl=$("atmTable"); if(!tbl)return;
+  let rows="",header;
+  if(unitSystem==="SI"){
+    header=`<tr><th>z, m</th><th>T, °C</th><th>P, kPa</th><th>g, m/s²</th><th>c, m/s</th><th>ρ, kg/m³</th><th>μ, kg/m·s</th><th>k, W/m·K</th></tr>`;
+    const zs=[0,500,1000,1500,2000,2500,3000,3500,4000,5000,6000,7000,8000,9000,10000,12000,14000,16000,18000,20000];
+    const near=zs.reduce((p,c)=>Math.abs(c-zSel)<Math.abs(p-zSel)?c:p);
+    rows=zs.map(z=>{const a=stdAtm(z);
+      return `<tr${z===near?' style="background:#e3f0fd;font-weight:600"':''}><td class="mono">${z.toLocaleString()}</td><td class="mono">${(a.T-273.15).toFixed(2)}</td><td class="mono">${a.P.toFixed(2)}</td><td class="mono">${a.g.toFixed(3)}</td><td class="mono">${a.c.toFixed(1)}</td><td class="mono">${a.rho.toFixed(4)}</td><td class="mono">${a.mu.toExponential(3)}</td><td class="mono">${a.k.toFixed(5)}</td></tr>`;}).join("");
+  }else{
+    if($("atmTblChip")) $("atmTblChip").textContent="Tabla A-16E (inglés)";
+    header=`<tr><th>z, ft</th><th>T, °F</th><th>P, psia</th><th>g, ft/s²</th><th>c, ft/s</th><th>ρ, lbm/ft³</th><th>μ, lbm/ft·s</th><th>k, Btu/h·ft·R</th></tr>`;
+    const zsft=[0,500,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,12000,14000,16000,18000,20000,25000,30000,35000,40000,50000,60000];
+    const zSelFt=zSel/0.3048;
+    const near=zsft.reduce((p,c)=>Math.abs(c-zSelFt)<Math.abs(p-zSelFt)?c:p);
+    rows=zsft.map(zf=>{const a=stdAtm(zf*0.3048);
+      return `<tr${zf===near?' style="background:#e3f0fd;font-weight:600"':''}><td class="mono">${zf.toLocaleString()}</td><td class="mono">${((a.T-273.15)*1.8+32).toFixed(2)}</td><td class="mono">${(a.P/6.894757).toFixed(3)}</td><td class="mono">${(a.g/0.3048).toFixed(3)}</td><td class="mono">${(a.c/0.3048).toFixed(1)}</td><td class="mono">${(a.rho/16.018463).toFixed(5)}</td><td class="mono">${(a.mu*0.671969).toExponential(3)}</td><td class="mono">${(a.k*0.577789).toFixed(5)}</td></tr>`;}).join("");
+  }
+  tbl.innerHTML=`<table>${header}${rows}</table>`;
+}
+function buildAltChart(){
+  const pts=[];for(let z=0;z<=20000;z+=250)pts.push({x:z,y:pAtAlt(z)});
+  altChart=new Chart($("altChart"),{type:"line",data:{datasets:[
+   {label:"P_atm (kPa)",data:pts,borderColor:"#1976d2",pointRadius:0,borderWidth:2,fill:{target:"origin",above:"rgba(25,118,210,.08)"}},
+   {label:"Altitud actual",data:[{x:0,y:101.325}],backgroundColor:"#c62828",pointRadius:6,type:"scatter"}
+  ]},options:{responsive:true,animation:false,scales:{
+    x:{type:"linear",title:{display:true,text:"z (m)"},max:20000},
+    y:{title:{display:true,text:"P (kPa)"},min:0,max:110}
+  },plugins:{legend:{display:false},zones:{show:true,ftAxis:false}}}});
+}
+function updateAbs(){
+  const patm=parseFloat($("patmIn").value)||0, pman=parseFloat($("pmanIn").value)||0;
+  const pabs=patm+pman, vac=pman<0?-pman:0;
+  const maxP=Math.max(pabs,patm,1)*1.15;
+  const pu=v=> unitSystem==="SI" ? `${fmt(v,4)} kPa` : `${fmt(v/6.894757,4)} psi`;
+  const bar=(lbl,val,color)=>`<div style="flex:1;text-align:center">
+    <div style="background:${color};height:${Math.max(2,val/maxP*140)}px;border-radius:6px 6px 0 0"></div>
+    <div style="font-size:.75rem;margin-top:4px"><b>${lbl}</b><br><span class="mono">${pu(val)}</span></div></div>`;
+  $("absBars").innerHTML=bar("P_atm",patm,"#90caf9")+bar("P_abs",pabs,"#1976d2")
+    +(pman>=0?bar("P_man",pman,"#66bb6a"):bar("P_vac",vac,"#ef5350"));
+  const extra = unitSystem==="EN" ? `\n(en SI: P_abs = ${fmt(pabs,4)} kPa; las entradas se capturan en kPa)` : "";
+  $("absRes").innerHTML= pman>=0
+   ? `P_abs = P_atm + P_man = ${pu(patm)} + ${pu(pman)} = <span class="big">${pu(pabs)}</span>${extra}`
+   : `P_abs = P_atm − P_vac = ${pu(patm)} − ${pu(vac)} = <span class="big">${pu(pabs)}</span>\n(presión de vacío: el sistema está por debajo de la atmosférica)${extra}`;
+}
+function buildPConv(){
+  $("pConvFrom").innerHTML=Object.keys(UNITS["Presión"].u).map(u=>`<option ${u==="atm"?"selected":""}>${u}</option>`).join("");
+  doPConvert();
+}
+function doPConvert(){
+  const v=parseFloat($("pConvVal").value), f=$("pConvFrom").value;
+  if(isNaN(v)){$("pConvTable").innerHTML="";return;}
+  let rows=Object.keys(UNITS["Presión"].u).map(u=>
+    `<tr><td class="mono">${u}</td><td class="mono">${fmt(convertU("Presión",v,f,u),6)}</td></tr>`).join("");
+  $("pConvTable").innerHTML=`<table><tr><th>Unidad</th><th>${fmt(v)} ${f} equivale a</th></tr>${rows}</table>`;
+}
+
+/* ===================== MÓDULO 4: TEMPERATURA ===================== */
+function toC(v,s){ return s==="C"?v : s==="K"?v-273.15 : s==="F"?(v-32)/1.8 : v/1.8-273.15; }
+function fromC(c){ return {C:c, K:c+273.15, F:1.8*c+32, R:1.8*c+491.67}; }
+function updateTemp(){
+  const v=parseFloat($("tempIn").value), s=$("tempScale").value;
+  if(isNaN(v)){$("tempRes").textContent="Introduzca un valor.";return;}
+  const c=toC(v,s), t=fromC(c);
+  const order = unitSystem==="SI" ? ["C","K","F","R"] : ["F","R","C","K"];
+  const names={C:"°C",K:"K",F:"°F",R:"°R"};
+  $("tempRes").innerHTML=order.map((k,i)=>
+    (i===0?`<span class="big">${fmt(t[k],6)} ${names[k]}</span>`:`${fmt(t[k],6)} ${names[k]}`)).join("\n");
+  // termómetro: rango -50..150 °C sobre 170 px (y 14..184), bulbo en 190
+  const frac=Math.max(0,Math.min(1,(c+50)/200));
+  const hpx=frac*170;
+  $("thMerc").setAttribute("y",184-hpx); $("thMerc").setAttribute("height",hpx+8);
+}
+/* Ley Cero */
+let contactTimer=null;
+function tempColor(t){ // 0..100 °C → azul..rojo
+  const f=Math.max(0,Math.min(1,t/100));
+  const r=Math.round(40+f*200), b=Math.round(220-f*180);
+  return `rgb(${r},80,${b})`;
+}
+let blkT={a:90,b:20,c:55};
+function fmtTblk(t){ return unitSystem==="SI" ? t.toFixed(1)+" °C" : (t*1.8+32).toFixed(1)+" °F"; }
+function paintBlocks(a,b,c){
+  blkT={a,b,c};
+  $("tA").textContent=fmtTblk(a); $("tB").textContent=fmtTblk(b); $("tC").textContent=fmtTblk(c);
+  $("blkA").style.background=tempColor(a); $("blkB").style.background=tempColor(b); $("blkC").style.background=tempColor(c);
+}
+function repaintBlocks(){ paintBlocks(blkT.a,blkT.b,blkT.c); updateBlockSliderLabels(); }
+function updateBlockSliderLabels(){
+  [["tAslider","tAval","tAunit"],["tBslider","tBval","tBunit"],["tCslider","tCval","tCunit"]].forEach(([s,v,u])=>{
+    const t=+$(s).value;
+    if(unitSystem==="SI"){ $(v).textContent=t; $(u).textContent="°C"; }
+    else{ $(v).textContent=(t*1.8+32).toFixed(0); $(u).textContent="°F"; }
+  });
+}
+function resetBlocks(){
+  if(contactTimer){clearInterval(contactTimer);contactTimer=null;}
+  const a=+$("tAslider").value,b=+$("tBslider").value,c=+$("tCslider").value;
+  updateBlockSliderLabels();
+  paintBlocks(a,b,c);
+  $("zeroRes").innerHTML="Los tres cuerpos (masas y c<sub>p</sub> iguales) evolucionarán hacia una temperatura común de equilibrio.";
+}
+function startContact(){
+  if(contactTimer)clearInterval(contactTimer);
+  let a=+$("tAslider").value,b=+$("tBslider").value,c=+$("tCslider").value;
+  const eq=(a+b+c)/3;
+  contactTimer=setInterval(()=>{
+    a+= (eq-a)*0.08; b+=(eq-b)*0.08; c+=(eq-c)*0.08;
+    paintBlocks(a,b,c);
+    if(Math.abs(a-eq)<0.05&&Math.abs(b-eq)<0.05&&Math.abs(c-eq)<0.05){
+      clearInterval(contactTimer);contactTimer=null;paintBlocks(eq,eq,eq);
+      $("zeroRes").innerHTML=`<span class="ok">Equilibrio térmico alcanzado: T_eq = ${fmtTblk(eq)}.</span>\nA está en equilibrio con C y B con C ⇒ por la Ley Cero, A está en equilibrio con B.`;
+    }
+  },50);
+}
+function updateDT(){
+  const v=parseFloat($("dtIn").value), s=$("dtScale").value;
+  if(isNaN(v)){$("dtRes").textContent="Introduzca un valor.";return;}
+  const dC = (s==="C"||s==="K") ? v : v/1.8;
+  $("dtRes").innerHTML=`ΔT = ${fmt(dC,5)} °C = ${fmt(dC,5)} K = ${fmt(dC*1.8,5)} °F = ${fmt(dC*1.8,5)} °R`;
+}
+
+/* ===================== EJERCICIOS ===================== */
+let currentEx={};
+const rnd=(a,b,d=1)=>+(a+Math.random()*(b-a)).toFixed(d);
+const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+function genEx(mod){
+  let ex={};
+  if(mod===1){
+    if(Math.random()<0.3){ // ejercicio BG / g_c
+      const m=rnd(10,200,1), a=rnd(5,40,1), ans=m*a/GC;
+      ex={text:`Una masa de ${m} lbm se acelera a ${a} ft/s². Calcule la fuerza necesaria en lbf (use el sistema BG o g_c).`,ans:ans,unit:"lbf",steps:[
+        `Ruta BG (recomendada): m = ${m} lbm ÷ 32.174 = ${fmt(m/GC,6)} slug`,
+        `F = m·a = ${fmt(m/GC,6)} slug × ${a} ft/s² = ${fmt(ans,6)} lbf  (1 lbf ≡ 1 slug·ft/s², sin g_c)`,
+        `Ruta inglés de ingeniería: F = m·a/g_c = ${m} × ${a} ÷ 32.174 = ${fmt(ans,6)} lbf`]};
+    }else{
+      const cat=pick(["Masa","Longitud","Fuerza","Presión","Energía","Potencia","Densidad"]);
+      const us=Object.keys(UNITS[cat].u);
+      let f=pick(us),t=pick(us); while(t===f)t=pick(us);
+      const v=rnd(1,500,1), ans=convertU(cat,v,f,t);
+      ex={text:`Convierta ${v} ${f} a ${t}.`,ans:ans,unit:t,steps:[
+        `Factor: 1 ${f} = ${fmt(UNITS[cat].u[f],6)} ${UNITS[cat].base}; 1 ${t} = ${fmt(UNITS[cat].u[t],6)} ${UNITS[cat].base}.`,
+        `x = ${v} × ${fmt(UNITS[cat].u[f],6)} / ${fmt(UNITS[cat].u[t],6)}`,
+        `x = ${fmt(ans,6)} ${t}`]};
+    }
+  }else if(mod===2){
+    const m=rnd(5,300,1), V=rnd(0.01,0.8,3);
+    const tipo=pick(["rho","v","gam"]);
+    if(tipo==="rho")ex={text:`Un fluido tiene masa m = ${m} kg y ocupa V = ${V} m³. Calcule su densidad ρ en kg/m³.`,ans:m/V,unit:"kg/m³",steps:[`ρ = m/V`,`ρ = ${m} / ${V}`,`ρ = ${fmt(m/V,6)} kg/m³`]};
+    else if(tipo==="v")ex={text:`Un fluido tiene masa m = ${m} kg y ocupa V = ${V} m³. Calcule su volumen específico v en m³/kg.`,ans:V/m,unit:"m³/kg",steps:[`v = V/m = 1/ρ`,`v = ${V} / ${m}`,`v = ${fmt(V/m,6)} m³/kg`]};
+    else ex={text:`Un fluido tiene masa m = ${m} kg y ocupa V = ${V} m³. Calcule su peso específico γ en N/m³ (g = 9.81 m/s²).`,ans:m/V*G,unit:"N/m³",steps:[`γ = ρ·g = (m/V)·g`,`γ = (${m}/${V}) × 9.81`,`γ = ${fmt(m/V*G,6)} N/m³`]};
+  }else if(mod===3){
+    const fluidos={"agua (ρ = 997 kg/m³)":997,"mercurio (ρ = 13 600 kg/m³)":13600,"aceite (ρ = 850 kg/m³)":850};
+    const fn=pick(Object.keys(fluidos)), rho=fluidos[fn], h=rnd(0.1,0.95,2);
+    const tipo=pick(["man","abs","alt"]);
+    const Pman=rho*G*h/1000;
+    if(tipo==="alt"){
+      const z=pick([1000,1500,2000,2500,3000,4000,5000,6000,8000,10000]);
+      const a=stdAtm(z);
+      ex={text:`Calcule la presión atmosférica estándar (kPa) a una altitud z = ${z.toLocaleString()} m, usando P = 101.325·(1 − 2.25577×10⁻⁵·z)^5.2559 (Tabla A-16).`,ans:a.P,unit:"kPa",steps:[
+        `1 − 2.25577×10⁻⁵ × ${z} = ${(1-2.25577e-5*z).toFixed(6)}`,
+        `P = 101.325 × (${(1-2.25577e-5*z).toFixed(6)})^5.2559`,
+        `P = ${fmt(a.P,6)} kPa  (compare con el renglón de la tabla A-16)`]};
+    }
+    else if(tipo==="man")ex={text:`Un manómetro en U con ${fn} marca una diferencia de alturas h = ${h} m. Calcule la presión manométrica en kPa (g = 9.81 m/s²).`,ans:Pman,unit:"kPa",steps:[`P_man = ρ·g·h`,`P_man = ${rho} × 9.81 × ${h} = ${fmt(rho*G*h,6)} Pa`,`P_man = ${fmt(Pman,6)} kPa`]};
+    else ex={text:`Un manómetro en U con ${fn} marca h = ${h} m y la presión atmosférica local es 101.325 kPa. Calcule la presión ABSOLUTA del gas en kPa.`,ans:PATM+Pman,unit:"kPa",steps:[`P_man = ρ·g·h = ${rho} × 9.81 × ${h} = ${fmt(Pman,6)} kPa`,`P_abs = P_atm + P_man`,`P_abs = 101.325 + ${fmt(Pman,6)} = ${fmt(PATM+Pman,6)} kPa`]};
+  }else{
+    const tipo=pick(["conv","dt"]);
+    if(tipo==="conv"){
+      const scales=["C","K","F","R"], names={C:"°C",K:"K",F:"°F",R:"°R"};
+      let f=pick(scales),t=pick(scales); while(t===f)t=pick(scales);
+      const v=rnd(-40,400,1), c=toC(v,f), ans=fromC(c)[t];
+      ex={text:`Convierta ${v} ${names[f]} a ${names[t]}.`,ans:ans,unit:names[t],steps:[
+        `Paso intermedio: T = ${fmt(c,6)} °C`,
+        `T(K) = °C + 273.15;  T(°F) = 1.8·°C + 32;  T(°R) = °F + 459.67`,
+        `Resultado: ${fmt(ans,6)} ${names[t]}`]};
+    }else{
+      const d=rnd(5,120,1), t=pick(["F","R"]);
+      const names={F:"°F",R:"°R"};
+      ex={text:`La temperatura de un sistema aumenta ΔT = ${d} °C durante un proceso. Exprese ese cambio en ${names[t]}.`,ans:d*1.8,unit:names[t],steps:[
+        `Para diferencias no se aplican desplazamientos de origen.`,
+        `ΔT(°F) = ΔT(°R) = 1.8 × ΔT(°C)`,
+        `ΔT = 1.8 × ${d} = ${fmt(d*1.8,6)} ${names[t]}`]};
+    }
+  }
+  currentEx[mod]=ex;
+  $("ex"+mod+"Text").textContent=ex.text;
+  $("ex"+mod+"Input").style.display="flex";
+  $("ex"+mod+"Ans").value="";
+  const fb=$("ex"+mod+"Fb"); fb.className="feedback"; fb.innerHTML="";
+}
+function checkEx(mod){
+  const ex=currentEx[mod]; if(!ex)return;
+  const user=parseFloat($("ex"+mod+"Ans").value);
+  const fb=$("ex"+mod+"Fb");
+  if(isNaN(user)){fb.className="feedback show wrong";fb.innerHTML="Introduzca una respuesta numérica.";return;}
+  const tol=Math.max(Math.abs(ex.ans)*0.015,1e-6);
+  const ok=Math.abs(user-ex.ans)<=tol;
+  const steps="<ol>"+ex.steps.map(s=>`<li>${s}</li>`).join("")+"</ol>";
+  if(ok){fb.className="feedback show good";
+    fb.innerHTML=`<b class="ok">✔ Correcto.</b> Respuesta: ${fmt(ex.ans,6)} ${ex.unit}. Procedimiento:${steps}`;
+  }else{fb.className="feedback show wrong";
+    fb.innerHTML=`<b class="bad">✘ Incorrecto.</b> Su valor: ${fmt(user,6)}; valor esperado: ${fmt(ex.ans,6)} ${ex.unit} (tolerancia ±1.5 %). Procedimiento:${steps}`;
+  }
+}
+
+/* ===================== ÍNDICE / NAVEGACIÓN ===================== */
+function irA(mod,idx){
+  const btn=document.querySelector('nav.tabs button[data-tab="'+mod+'"]');
+  if(btn) showTab(mod,btn);
+  const sec=document.getElementById(mod); if(!sec) return;
+  let target=null;
+  if(idx==='concepto'){ target=sec.querySelector("details.concepto"); if(target) target.open=true; }
+  else { const t=sec.querySelectorAll("h2")[idx]; if(t) target=t.closest(".card")||t.parentElement; }
+  setTimeout(()=>{
+    if(target){ target.scrollIntoView({behavior:"smooth",block:"start"});
+      target.classList.add("flash"); setTimeout(()=>target.classList.remove("flash"),1600); }
+    else window.scrollTo({top:0,behavior:"smooth"});
+  },70);
+}
+
+/* ===================== TABS E INICIO ===================== */
+function showTab(id,btn){
+  document.querySelectorAll("section.module").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.remove("active"));
+  $(id).classList.add("active"); btn.classList.add("active");
+}
+window.addEventListener("DOMContentLoaded",()=>{
+  buildConvCats(); buildPConv(); buildAtmSheets(); buildMiniSys();
+  buildRhoChart(); buildAltChart();
+  enableAltDrag("altChart",()=>altChart);
+  enableAltDrag("atmPropChart",()=>atmPropChart);
+  updateDensity(); updateManometer(); updateAltitude(); updateAbs();
+  updateTemp(); updateDT(); resetBlocks(); updateGc();
+  updateTprops(true); enableTwDrag();
+  /* Validación interna (consola): */
+  console.log("Caso (a): 1 atm =",convertU("Presión",1,"atm","kPa").toFixed(3),"kPa =",convertU("Presión",1,"atm","psi").toFixed(3),"psi =",convertU("Presión",1,"atm","mmHg").toFixed(1),"mmHg");
+  console.log("Caso (b): 760 mmHg, ρ=13600, g=9.81 →",(13600*9.81*0.760/1000).toFixed(1),"kPa");
+  const t=fromC(25);
+  console.log("Caso (c): 25 °C =",t.K,"K =",t.F,"°F =",t.R.toFixed(2),"°R");
+  const a5k=stdAtm(5000*0.3048); // renglón 5000 ft de la Tabla A-16E
+  console.log("Caso (d) A-16E @5000 ft: T =",((a5k.T-273.15)*1.8+32).toFixed(2),"°F (tabla 41.17) | P =",(a5k.P/6.894757).toFixed(3),"psia (tabla 12.228) | ρ =",(a5k.rho/16.018463).toFixed(5),"lbm/ft³ (tabla 0.06587) | c =",(a5k.c/0.3048).toFixed(1),"ft/s (tabla 1097.3)");
+});
+</script>
+
+<style id="orvhelp-css">
+#orvhelp-btn{position:fixed;right:18px;bottom:18px;z-index:99990;display:inline-flex;align-items:center;gap:7px;
+ background:#1976d2;color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 .85rem/1 'Segoe UI',system-ui,sans-serif;
+ letter-spacing:.05em;cursor:pointer;box-shadow:0 4px 16px rgba(20,40,80,.28);transition:filter .15s}
+#orvhelp-btn:hover{filter:brightness(1.12)}
+#orvhelp-overlay{position:fixed;inset:0;z-index:99991;background:rgba(15,25,40,.55);display:none;align-items:center;justify-content:center;padding:18px}
+#orvhelp-overlay.open{display:flex}
+#orvhelp-panel{background:#fff;color:#1a2233;max-width:580px;width:100%;max-height:85vh;overflow-y:auto;border-radius:14px;
+ box-shadow:0 18px 60px rgba(10,20,40,.35);font-family:'Segoe UI',system-ui,sans-serif}
+#orvhelp-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+ background:linear-gradient(90deg,#1565c0,#1e88e5);color:#fff;padding:14px 20px;border-radius:14px 14px 0 0}
+#orvhelp-head h2{margin:0;font-size:1.02rem;font-weight:600}
+#orvhelp-close{background:rgba(255,255,255,.18);border:none;color:#fff;font-size:1.15rem;line-height:1;
+ border-radius:8px;width:30px;height:30px;cursor:pointer}
+#orvhelp-body{padding:16px 22px 20px;font-size:.9rem;line-height:1.55}
+#orvhelp-body h3{margin:14px 0 6px;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:#1565c0}
+#orvhelp-body ol{margin:4px 0 0;padding-left:20px}
+#orvhelp-body ol li{margin-bottom:6px}
+#orvhelp-tip{margin-top:14px;background:#e3f0fd;border-left:4px solid #1976d2;border-radius:8px;padding:10px 14px;font-size:.84rem;color:#1a2233}
+</style>
+
+<button id="orvhelp-btn" type="button" aria-haspopup="dialog" aria-controls="orvhelp-overlay">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.8.3-1.4 1-1.4 1.9v.3"/><line x1="11.5" y1="17" x2="11.51" y2="17"/></svg>AYUDA</button>
+<div id="orvhelp-overlay" role="dialog" aria-modal="true" aria-labelledby="orvhelp-title">
+  <div id="orvhelp-panel">
+    <div id="orvhelp-head"><h2 id="orvhelp-title">Ayuda · Preliminares</h2>
+      <button id="orvhelp-close" type="button" aria-label="Cerrar ayuda">&#215;</button></div>
+    <div id="orvhelp-body">
+      <h3>¿Qué es esta aplicación?</h3>
+      <p>Entorno interactivo de propiedades fundamentales (presión, temperatura, densidad, volumen y peso específico), con prefijos del SI y calculadora ligada ρ–v–γ.</p>
+      <h3>Cómo se usa</h3>
+      <ol><li>Recorra los módulos de propiedades fundamentales (presión, temperatura, densidad…).</li><li>Modifique los valores de entrada y observe la actualización inmediata de resultados.</li><li>Utilice la calculadora ligada ρ–v–γ para verificar la consistencia entre propiedades.</li><li>Practique las conversiones con los prefijos del SI incluidos.</li></ol>
+      <div id="orvhelp-tip"><b>Sugerencia didáctica.</b> Resuelva el enunciado y los ejercicios de esta aplicación disponibles en el índice del Compendio ORV, y verifique sus resultados con la propia herramienta.</div>
+    </div>
+  </div>
+</div>
+<script id="orvhelp-js">
+(function(){
+ var b=document.getElementById('orvhelp-btn'),o=document.getElementById('orvhelp-overlay'),c=document.getElementById('orvhelp-close');
+ function open(){o.classList.add('open');} function close(){o.classList.remove('open');}
+ b.addEventListener('click',open); c.addEventListener('click',close);
+ o.addEventListener('click',function(e){if(e.target===o)close();});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+})();
+</script>
+
+<script id="hashnav-js">
+/* Navegación por ancla: permite abrir un módulo directamente con #mod0 … #mod4 */
+(function(){
+  function ir(){
+    var k=(location.hash||"").replace("#","");
+    if(!/^mod[0-4]$/.test(k)) return;
+    var b=document.querySelector('nav.tabs button[data-tab="'+k+'"]');
+    if(b && typeof showTab==="function") showTab(k,b);
+  }
+  window.addEventListener("DOMContentLoaded",ir);
+  window.addEventListener("hashchange",ir);
+})();
+</script>
+</body>
+</html>
